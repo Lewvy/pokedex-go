@@ -88,7 +88,7 @@ func (c *Client) ListPokemons(url *string) (RespPokemons, error) {
 	return pokemons, nil
 }
 
-func (c Client) AttemptCatch(baseExp int) bool {
+func (c *Client) AttemptCatch(baseExp int) bool {
 	randNo := rand.Intn(baseExp)
 	if randNo >= baseExp/3 {
 		return true
@@ -96,36 +96,30 @@ func (c Client) AttemptCatch(baseExp int) bool {
 	return false
 }
 
-func (c Client) ValidatePokemon(pokemon string) (bool, int, error) {
+func (c *Client) ValidatePokemon(pokemon string) (*Pokemon, error) {
 	url := "https://pokeapi.co/api/v2/pokemon/" + pokemon
+	var poke Pokemon
 	if val, ok := c.cache.Get(url); ok {
-
-		poke := map[string]any{}
 		json.Unmarshal(val, &poke)
-		x := int(poke["base_experience"].(float64))
-		return true, x, nil
+		return &poke, nil
 	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return false, 0, err
+		return nil, err
 	}
 	res, err := c.httpClient.Do(req)
 	if err != nil {
-		return false, 0, err
+		return nil, err
 	}
 	if res.StatusCode >= 400 {
-		return false, 0, fmt.Errorf("%s not found", pokemon)
+		return nil, fmt.Errorf("%s not found", pokemon)
 	}
 	data, err := io.ReadAll(res.Body)
 	if err != nil {
-		return false, 0, err
+		return nil, err
 	}
-	p := struct {
-		BaseExperience int `json:"base_experience"`
-	}{}
-
-	json.Unmarshal(data, &p)
+	json.Unmarshal(data, &poke)
 
 	c.cache.Add(url, data)
-	return true, p.BaseExperience, nil
+	return &poke, nil
 }

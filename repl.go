@@ -14,7 +14,7 @@ type Config struct {
 	NextLocationURL *string
 	PrevLocationURL *string
 	Args            []string
-	Pokemons        map[string]Pokemon
+	Pokemons        map[string]*pokeapi.Pokemon
 }
 
 func Start(c *Config) {
@@ -70,6 +70,16 @@ func GetCommands() map[string]cliCommand {
 			Name:        "catch",
 			Description: "Attempts to catch a pokemon - usage: catch <pokemon>",
 			Callback:    CommandCatch,
+		},
+		"inspect": {
+			Name:        "inspect",
+			Description: "Inspects caught pokemons",
+			Callback:    CommandInspect,
+		},
+		"pokedex": {
+			Name:        "pokedex",
+			Description: "Lists out all the acquired pokemons",
+			Callback:    CommandPokedex,
 		},
 		"clear": {
 			Name:        "clear",

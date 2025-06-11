@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"os/exec"
 	"strings"
@@ -19,25 +18,46 @@ func CommandCatch(c *Config) error {
 		return fmt.Errorf("Invalid arguments. want=2, got=%d", len(c.Args))
 	}
 	pokemon := c.Args[1]
-	var baseExp int
 	var err error
-	ok, baseExp, err := c.PokeapiClient.ValidatePokemon(pokemon)
-	if !ok {
-		return fmt.Errorf("Invalid pokemon\n")
-	}
+	poke, err := c.PokeapiClient.ValidatePokemon(pokemon)
 	if err != nil {
 		return err
 	}
+	if poke == nil {
+		return fmt.Errorf("Unexpected error..")
+	}
 	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon)
 
-	if ok := c.PokeapiClient.AttemptCatch(int(math.Abs(float64(baseExp)))); ok {
-		fmt.Printf("%s was caught!\n", pokemon)
-		poke := c.Pokemons[pokemon]
-		poke.BaseExperience = baseExp
+	if ok := c.PokeapiClient.AttemptCatch(poke.BaseExperience); ok {
+		fmt.Printf("%s was caught!\n", poke.Name)
 		c.Pokemons[pokemon] = poke
 	} else {
-		fmt.Printf("%s escaped!\n", pokemon)
+		fmt.Printf("%s escaped!\n", poke.Name)
 	}
+	return nil
+}
+
+func CommandInspect(c *Config) error {
+	if len(c.Args) != 2 {
+		return fmt.Errorf("Invalid args: want=1, got=%d", len(c.Args)-1)
+	}
+	pokemon := c.Args[1]
+	poke, ok := c.Pokemons[pokemon]
+	if !ok {
+		return fmt.Errorf("you have not caught that pokemon")
+	}
+	fmt.Println("Name:", poke.Name)
+	fmt.Println("Height:", poke.Height)
+	fmt.Println("Weight:", poke.Weight)
+	fmt.Println("Stats:")
+	for _, v := range poke.Stats {
+		fmt.Printf("  -%s: %d\n", v.Stat.Name, v.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, v := range poke.Types {
+		fmt.Println("  -", v.Type.Name)
+	}
+
 	return nil
 }
 

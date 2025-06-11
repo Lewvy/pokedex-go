@@ -7,7 +7,7 @@ import (
 
 func main() {
 	Client := pokeapi.NewClient(time.Second*5, time.Minute*5)
-	PokemonMap := make(map[string]Pokemon)
+	PokemonMap := make(map[string]*pokeapi.Pokemon)
 
 	c := Config{
 		PokeapiClient: Client,
